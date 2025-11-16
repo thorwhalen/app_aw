@@ -7,6 +7,8 @@ An HTTP and GUI interface for the [aw](https://github.com/thorwhalen/aw) (Agenti
 - **Phase 1**: ✅ Complete - FastAPI backend foundation
 - **Phase 2**: ✅ Complete - Core backend features & async execution
 - **Phase 3**: ✅ Complete - React + TypeScript frontend
+- **Phase 4**: ✅ Complete - Advanced UI features & visualization
+- **Phase 5**: ✅ Complete - E2E testing with Playwright
 
 ## What's Been Built
 
@@ -33,6 +35,20 @@ Modern web interface with real-time updates and intuitive UX.
 - ✅ WebSocket integration
 - ✅ Responsive design
 - ✅ Production-ready Docker deployment
+- ✅ Result data visualization with table preview
+- ✅ Download functionality for job results
+- ✅ Human-in-loop approval modal (ready for backend)
+
+### Testing (Playwright E2E)
+
+Comprehensive end-to-end testing covering all user workflows.
+
+**Key Features**:
+- ✅ 24 E2E tests across 4 scenarios
+- ✅ Page Object Model architecture
+- ✅ Auto-start servers in test environment
+- ✅ Data loading, workflow creation, execution, error handling
+- ✅ Screenshot/video capture on failure
 
 ## Quick Start
 
@@ -69,16 +85,25 @@ npm run dev
 - [Phase 1 Summary](PHASE1_COMPLETE.md) - Backend foundation
 - [Phase 2 Summary](PHASE2_COMPLETE.md) - Async execution
 - [Phase 3 Summary](PHASE3_COMPLETE.md) - Frontend implementation
+- [Phase 4 Summary](PHASE4_COMPLETE.md) - Advanced UI features
+- [Phase 5 Summary](PHASE5_COMPLETE.md) - E2E testing
 - [Backend README](backend/README.md) - Backend details
 - [Frontend README](frontend/README.md) - Frontend details
+- [E2E Testing README](tests/e2e/README.md) - Test documentation
 
 ## Testing
 
+**Backend Tests**:
 ```bash
 cd backend && pytest -v
 ```
+Test Results: 11/12 passing (1 requires Docker environment)
 
-**Test Results**: 11/12 passing
+**E2E Tests**:
+```bash
+cd tests/e2e && npm test
+```
+Test Results: 24 tests across 4 user scenarios
 
 ## Architecture
 

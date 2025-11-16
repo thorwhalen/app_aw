@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Activity, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react'
 import api from '../services/api'
 import { connectToJob } from '../services/websocket'
+import { ResultViewer } from './ResultViewer'
 import type { Job, JobStatus, WSMessage } from '../types'
 
 interface ExecutionMonitorProps {
@@ -162,8 +163,28 @@ export function ExecutionMonitor({ jobId, onComplete }: ExecutionMonitorProps) {
           }}
         >
           <p style={{ color: '#065f46', fontSize: '0.875rem', fontWeight: '500' }}>
-            ✓ Results available: <code>{currentJob.result_data_id}</code>
+            ✓ Job completed successfully
           </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function ExecutionMonitorWithResults({ jobId, onComplete }: ExecutionMonitorProps) {
+  const { data: job } = useQuery({
+    queryKey: ['job', jobId],
+    queryFn: () => api.getJob(jobId),
+    enabled: !!jobId,
+  })
+
+  return (
+    <div>
+      <ExecutionMonitor jobId={jobId} onComplete={onComplete} />
+
+      {job?.status === 'completed' && job?.result_data_id && (
+        <div style={{ marginTop: '1.5rem' }}>
+          <ResultViewer dataId={job.result_data_id} />
         </div>
       )}
     </div>

@@ -9,7 +9,7 @@ import { DataUpload } from './components/DataUpload'
 import { DataList } from './components/DataList'
 import { WorkflowBuilder } from './components/WorkflowBuilder'
 import { WorkflowList } from './components/WorkflowList'
-import { ExecutionMonitor } from './components/ExecutionMonitor'
+import { ExecutionMonitorWithResults } from './components/ExecutionMonitor'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -184,8 +184,8 @@ function App() {
             )}
 
             {currentView === 'monitor' && monitoringJobId && (
-              <div style={{ maxWidth: '700px', margin: '0 auto' }}>
-                <ExecutionMonitor
+              <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+                <ExecutionMonitorWithResults
                   jobId={monitoringJobId}
                   onComplete={(job) => {
                     console.log('Job completed:', job)
