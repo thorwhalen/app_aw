@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from app.api.v1 import data, health, workflows
+from app.api.v1 import data, health, jobs, workflows
 
 api_router = APIRouter()
 
@@ -10,3 +10,4 @@ api_router = APIRouter()
 api_router.include_router(health.router, tags=["health"])
 api_router.include_router(workflows.router, prefix="/workflows", tags=["workflows"])
 api_router.include_router(data.router, prefix="/data", tags=["data"])
+api_router.include_router(jobs.router, prefix="/jobs", tags=["jobs"])

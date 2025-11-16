@@ -81,7 +81,7 @@ class JobResponse(BaseModel):
     status: JobStatus
     input_data_id: str | None
     result_data_id: str | None
-    metadata: dict[str, Any] | None
+    metadata: dict[str, Any] | None = Field(alias="job_metadata")
     error: str | None
     progress: int
     logs: list[str] | None
@@ -89,7 +89,7 @@ class JobResponse(BaseModel):
     started_at: datetime | None
     completed_at: datetime | None
 
-    model_config = {"from_attributes": True}
+    model_config = {"from_attributes": True, "populate_by_name": True}
 
 
 class DataArtifactCreate(BaseModel):
@@ -107,10 +107,10 @@ class DataArtifactResponse(BaseModel):
     storage_path: str
     size_bytes: int | None
     content_type: str | None
-    metadata: dict[str, Any] | None
+    metadata: dict[str, Any] | None = Field(alias="file_metadata")
     created_at: datetime
 
-    model_config = {"from_attributes": True}
+    model_config = {"from_attributes": True, "populate_by_name": True}
 
 
 class DataSampleResponse(BaseModel):

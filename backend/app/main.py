@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1 import api_router
+from app.api.v1 import websockets
 from app.config import get_settings
 from app.core.database import close_db, init_db
 
@@ -46,6 +47,9 @@ app.add_middleware(
 
 # Include API router
 app.include_router(api_router, prefix=settings.api_v1_prefix)
+
+# Include WebSocket router
+app.include_router(websockets.router, prefix="/ws", tags=["websockets"])
 
 
 @app.get("/")

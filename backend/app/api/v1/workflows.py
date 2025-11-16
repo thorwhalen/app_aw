@@ -8,7 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import DatabaseSession
 from app.models.database import Workflow
-from app.models.schemas import WorkflowCreate, WorkflowResponse, WorkflowUpdate
+from app.models.schemas import JobResponse, WorkflowCreate, WorkflowResponse, WorkflowUpdate
+from app.services.workflow_service import WorkflowService
 
 router = APIRouter()
 
@@ -187,3 +188,38 @@ async def delete_workflow(
 
     await db.delete(workflow)
     await db.commit()
+
+
+@router.post(
+    "/{workflow_id}/execute",
+    response_model=JobResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Execute workflow",
+)
+async def execute_workflow(
+    workflow_id: str,
+    db: DatabaseSession,
+    input_data_id: str | None = None,
+) -> JobResponse:
+    """Execute a workflow asynchronously.
+
+    Args:
+        workflow_id: Workflow ID to execute
+        db: Database session
+        input_data_id: Optional input data artifact ID
+
+    Returns:
+        Created and queued job
+
+    Raises:
+        HTTPException: If workflow not found
+    """
+    service = WorkflowService(db)
+
+    try:
+        return await service.execute_workflow(workflow_id, input_data_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
