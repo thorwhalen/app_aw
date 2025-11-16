@@ -23,9 +23,9 @@ export function ExecutionMonitor({ jobId, onComplete }: ExecutionMonitorProps) {
   const { data: job, refetch } = useQuery({
     queryKey: ['job', jobId],
     queryFn: () => api.getJob(jobId),
-    refetchInterval: (data) => {
+    refetchInterval: (query) => {
       // Stop refetching if job is complete or we have WebSocket updates
-      if (data?.status && ['completed', 'failed', 'cancelled'].includes(data.status)) {
+      if (query.state.data?.status && ['completed', 'failed', 'cancelled'].includes(query.state.data.status)) {
         return false
       }
       return liveStatus ? false : 5000 // Only poll if no WebSocket

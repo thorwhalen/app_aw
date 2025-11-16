@@ -4,9 +4,12 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Play, Trash2, Loader } from 'lucide-react'
+import { Play, Trash2, Workflow as WorkflowIcon } from 'lucide-react'
 import api from '../services/api'
 import type { Workflow } from '../types'
+import { ListSkeleton } from './Loading'
+import { EmptyState } from './EmptyState'
+import { useToast } from './Toast'
 
 interface WorkflowListProps {
   onExecute?: (jobId: string) => void
@@ -15,8 +18,9 @@ interface WorkflowListProps {
 export function WorkflowList({ onExecute }: WorkflowListProps) {
   const [selectedDataId, setSelectedDataId] = useState<string>('')
   const queryClient = useQueryClient()
+  const toast = useToast()
 
-  const { data: workflows, isLoading } = useQuery({
+  const { data: workflows, isLoading, error } = useQuery({
     queryKey: ['workflows'],
     queryFn: () => api.getWorkflows(),
   })
@@ -29,7 +33,11 @@ export function WorkflowList({ onExecute }: WorkflowListProps) {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.deleteWorkflow(id),
     onSuccess: () => {
+      toast.success('Workflow deleted successfully')
       queryClient.invalidateQueries({ queryKey: ['workflows'] })
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.detail || 'Failed to delete workflow')
     },
   })
 
@@ -37,9 +45,13 @@ export function WorkflowList({ onExecute }: WorkflowListProps) {
     mutationFn: ({ workflowId, dataId }: { workflowId: string; dataId?: string }) =>
       api.executeWorkflow(workflowId, dataId),
     onSuccess: (job) => {
+      toast.success('Workflow execution started')
       if (onExecute) {
         onExecute(job.id)
       }
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.detail || 'Failed to execute workflow')
     },
   })
 
@@ -57,10 +69,17 @@ export function WorkflowList({ onExecute }: WorkflowListProps) {
   }
 
   if (isLoading) {
+    return <ListSkeleton count={3} />
+  }
+
+  if (error) {
     return (
-      <div className="card" style={{ textAlign: 'center', padding: '2rem' }}>
-        <Loader size={32} style={{ margin: '0 auto', animation: 'spin 1s linear infinite' }} />
-        <p style={{ marginTop: '0.5rem', color: 'var(--text-secondary)' }}>Loading workflows...</p>
+      <div className="card">
+        <EmptyState
+          icon={<WorkflowIcon size={48} style={{ color: 'var(--error)' }} />}
+          title="Failed to load workflows"
+          description={(error as any).response?.data?.detail || 'An error occurred while loading your workflows. Please try again.'}
+        />
       </div>
     )
   }
@@ -68,9 +87,11 @@ export function WorkflowList({ onExecute }: WorkflowListProps) {
   if (!workflows || workflows.length === 0) {
     return (
       <div className="card">
-        <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '1rem' }}>
-          No workflows yet. Create one using the builder above.
-        </p>
+        <EmptyState
+          icon={<WorkflowIcon size={48} />}
+          title="No workflows created yet"
+          description="Create your first workflow using the builder above to automate data processing. Add steps like loading, preparing, and validation."
+        />
       </div>
     )
   }

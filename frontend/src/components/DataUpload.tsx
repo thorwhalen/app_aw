@@ -5,31 +5,26 @@
 import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Upload, FileText, CheckCircle, XCircle } from 'lucide-react'
+import { Upload, FileText } from 'lucide-react'
 import api from '../services/api'
+import { useToast } from './Toast'
 
 export function DataUpload() {
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
-  const [uploadedFile, setUploadedFile] = useState<string | null>(null)
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading'>('idle')
   const queryClient = useQueryClient()
+  const toast = useToast()
 
   const uploadMutation = useMutation({
     mutationFn: (file: File) => api.uploadData(file),
     onSuccess: (data) => {
-      setUploadStatus('success')
-      setUploadedFile(data.filename)
+      setUploadStatus('idle')
+      toast.success(`Successfully uploaded ${data.filename}`)
       queryClient.invalidateQueries({ queryKey: ['dataArtifacts'] })
-
-      // Reset after 3 seconds
-      setTimeout(() => {
-        setUploadStatus('idle')
-        setUploadedFile(null)
-      }, 3000)
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Upload error:', error)
-      setUploadStatus('error')
-      setTimeout(() => setUploadStatus('idle'), 3000)
+      setUploadStatus('idle')
+      toast.error(error.response?.data?.detail || 'Failed to upload file. Please try again.')
     },
   })
 
@@ -63,14 +58,20 @@ export function DataUpload() {
           borderRadius: '8px',
           padding: '2rem',
           textAlign: 'center',
-          cursor: 'pointer',
+          cursor: uploadStatus === 'uploading' ? 'not-allowed' : 'pointer',
           backgroundColor: isDragActive ? 'rgba(59, 130, 246, 0.05)' : 'transparent',
           transition: 'all 0.2s',
+          opacity: uploadStatus === 'uploading' ? 0.6 : 1,
         }}
       >
-        <input {...getInputProps()} />
+        <input {...getInputProps()} disabled={uploadStatus === 'uploading'} />
 
-        {uploadStatus === 'idle' && (
+        {uploadStatus === 'uploading' ? (
+          <>
+            <FileText size={48} style={{ margin: '0 auto 1rem', color: 'var(--primary)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            <p style={{ fontWeight: '500' }}>Uploading...</p>
+          </>
+        ) : (
           <>
             <Upload
               size={48}
@@ -84,35 +85,6 @@ export function DataUpload() {
             </p>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
               Supported: CSV, JSON, TXT
-            </p>
-          </>
-        )}
-
-        {uploadStatus === 'uploading' && (
-          <>
-            <FileText size={48} style={{ margin: '0 auto 1rem', color: 'var(--primary)' }} />
-            <p style={{ fontWeight: '500' }}>Uploading...</p>
-          </>
-        )}
-
-        {uploadStatus === 'success' && (
-          <>
-            <CheckCircle size={48} style={{ margin: '0 auto 1rem', color: 'var(--success)' }} />
-            <p style={{ fontWeight: '500', color: 'var(--success)' }}>Upload successful!</p>
-            {uploadedFile && (
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                {uploadedFile}
-              </p>
-            )}
-          </>
-        )}
-
-        {uploadStatus === 'error' && (
-          <>
-            <XCircle size={48} style={{ margin: '0 auto 1rem', color: 'var(--error)' }} />
-            <p style={{ fontWeight: '500', color: 'var(--error)' }}>Upload failed</p>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-              Please try again
             </p>
           </>
         )}

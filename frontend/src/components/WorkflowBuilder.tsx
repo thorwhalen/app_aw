@@ -7,12 +7,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, Save } from 'lucide-react'
 import api from '../services/api'
 import type { WorkflowStep, WorkflowStepType } from '../types'
+import { useToast } from './Toast'
 
 export function WorkflowBuilder() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [steps, setSteps] = useState<WorkflowStep[]>([])
   const queryClient = useQueryClient()
+  const toast = useToast()
 
   const createMutation = useMutation({
     mutationFn: () =>
@@ -23,15 +25,15 @@ export function WorkflowBuilder() {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['workflows'] })
+      toast.success('Workflow created successfully!')
       // Reset form
       setName('')
       setDescription('')
       setSteps([])
-      alert('Workflow created successfully!')
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Failed to create workflow:', error)
-      alert('Failed to create workflow')
+      toast.error(error.response?.data?.detail || 'Failed to create workflow. Please try again.')
     },
   })
 

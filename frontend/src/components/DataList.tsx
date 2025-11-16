@@ -5,11 +5,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Download, Trash2, FileText } from 'lucide-react'
 import api from '../services/api'
+import { ListSkeleton } from './Loading'
+import { EmptyState } from './EmptyState'
+import { useToast } from './Toast'
 
 export function DataList() {
   const queryClient = useQueryClient()
+  const toast = useToast()
 
-  const { data: artifacts, isLoading } = useQuery({
+  const { data: artifacts, isLoading, error } = useQuery({
     queryKey: ['dataArtifacts'],
     queryFn: () => api.getDataArtifacts(),
   })
@@ -17,7 +21,11 @@ export function DataList() {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.deleteDataArtifact(id),
     onSuccess: () => {
+      toast.success('File deleted successfully')
       queryClient.invalidateQueries({ queryKey: ['dataArtifacts'] })
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.detail || 'Failed to delete file')
     },
   })
 
@@ -32,9 +40,10 @@ export function DataList() {
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
-    } catch (error) {
+      toast.success(`Downloaded ${filename}`)
+    } catch (error: any) {
       console.error('Download error:', error)
-      alert('Failed to download file')
+      toast.error(error.response?.data?.detail || 'Failed to download file')
     }
   }
 
@@ -52,11 +61,17 @@ export function DataList() {
   }
 
   if (isLoading) {
+    return <ListSkeleton count={3} />
+  }
+
+  if (error) {
     return (
       <div className="card">
-        <p style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-secondary)' }}>
-          Loading data artifacts...
-        </p>
+        <EmptyState
+          icon={<FileText size={48} style={{ color: 'var(--error)' }} />}
+          title="Failed to load data"
+          description={(error as any).response?.data?.detail || 'An error occurred while loading your data files. Please try again.'}
+        />
       </div>
     )
   }
@@ -64,9 +79,11 @@ export function DataList() {
   if (!artifacts || artifacts.length === 0) {
     return (
       <div className="card">
-        <p style={{ textAlign: 'center', padding: '1rem', color: 'var(--text-secondary)' }}>
-          No data files uploaded yet. Use the upload form above.
-        </p>
+        <EmptyState
+          icon={<FileText size={48} />}
+          title="No data uploaded yet"
+          description="Upload your first dataset using the form above to get started. Supported formats: CSV, JSON, and TXT."
+        />
       </div>
     )
   }

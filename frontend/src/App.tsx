@@ -3,16 +3,20 @@
  */
 
 import { useState } from 'react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
 import { FileUp, Workflow as WorkflowIcon, LayoutDashboard, Activity, LogOut, User } from 'lucide-react'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { ToastProvider } from './components/Toast'
 import { Login } from './components/Login'
 import { Register } from './components/Register'
 import { DataUpload } from './components/DataUpload'
 import { DataList } from './components/DataList'
 import { WorkflowBuilder } from './components/WorkflowBuilder'
 import { WorkflowList } from './components/WorkflowList'
+import { WorkflowTemplates } from './components/WorkflowTemplates'
 import { ExecutionMonitorWithResults } from './components/ExecutionMonitor'
+import { Onboarding } from './components/Onboarding'
+import api from './services/api'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,6 +33,19 @@ function MainApp() {
   const { user, logout, isLoading } = useAuth()
   const [currentView, setCurrentView] = useState<View>('dashboard')
   const [monitoringJobId, setMonitoringJobId] = useState<string | null>(null)
+
+  // Fetch data and workflows for onboarding detection
+  const { data: dataArtifacts } = useQuery({
+    queryKey: ['dataArtifacts'],
+    queryFn: () => api.getDataArtifacts(),
+    enabled: !!user,
+  })
+
+  const { data: workflows } = useQuery({
+    queryKey: ['workflows'],
+    queryFn: () => api.getWorkflows(),
+    enabled: !!user,
+  })
 
   const handleExecute = (jobId: string) => {
     setMonitoringJobId(jobId)
@@ -58,9 +75,17 @@ function MainApp() {
   }
 
   return (
-      <div className="app-layout">
-        {/* Sidebar */}
-        <div className="sidebar">
+      <>
+        {/* Onboarding flow for new users */}
+        <Onboarding
+          hasData={(dataArtifacts?.length || 0) > 0}
+          hasWorkflows={(workflows?.length || 0) > 0}
+          onNavigate={(view) => setCurrentView(view)}
+        />
+
+        <div className="app-layout">
+          {/* Sidebar */}
+          <div className="sidebar">
           <div style={{ marginBottom: '2rem' }}>
             <h1 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.25rem' }}>
               AW App
@@ -244,6 +269,7 @@ function MainApp() {
 
             {currentView === 'workflows' && (
               <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+                <WorkflowTemplates />
                 <div style={{ marginBottom: '1.5rem' }}>
                   <WorkflowBuilder />
                 </div>
@@ -263,16 +289,19 @@ function MainApp() {
             )}
           </div>
         </div>
-      </div>
+        </div>
+      </>
   )
 }
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <MainApp />
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <MainApp />
+        </AuthProvider>
+      </ToastProvider>
     </QueryClientProvider>
   )
 }
