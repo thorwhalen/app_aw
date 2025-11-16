@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 
 
 class WorkflowStepType(str, Enum):
@@ -136,3 +136,53 @@ class HealthResponse(BaseModel):
     version: str
     database: str
     redis: str | None = None
+
+
+# Authentication Schemas
+
+
+class UserCreate(BaseModel):
+    """Schema for creating a new user."""
+
+    username: str = Field(..., min_length=3, max_length=50)
+    email: EmailStr
+    password: str = Field(..., min_length=8)
+    full_name: str | None = None
+
+
+class UserLogin(BaseModel):
+    """Schema for user login."""
+
+    username: str
+    password: str
+
+
+class UserResponse(BaseModel):
+    """Schema for user response (without password)."""
+
+    id: str
+    username: str
+    email: str
+    full_name: str | None
+    is_active: bool
+    is_superuser: bool
+    scopes: list[str]
+    created_at: datetime
+    last_login: datetime | None = None
+
+    model_config = {"from_attributes": True}
+
+
+class TokenResponse(BaseModel):
+    """Schema for token response."""
+
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int  # seconds
+    refresh_token: str | None = None
+
+
+class TokenRefresh(BaseModel):
+    """Schema for token refresh request."""
+
+    refresh_token: str

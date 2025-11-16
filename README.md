@@ -9,6 +9,9 @@ An HTTP and GUI interface for the [aw](https://github.com/thorwhalen/aw) (Agenti
 - **Phase 3**: ✅ Complete - React + TypeScript frontend
 - **Phase 4**: ✅ Complete - Advanced UI features & visualization
 - **Phase 5**: ✅ Complete - E2E testing with Playwright
+- **Phase 6**: ✅ Complete - Cloud preparation & production-ready features
+
+🎉 **All phases complete!** Ready for production deployment.
 
 ## What's Been Built
 
@@ -21,7 +24,12 @@ Complete REST API with async support for workflow management, data handling, and
 - ✅ File upload and management
 - ✅ Background job processing (Celery)
 - ✅ Real-time updates (WebSocket)
-- ✅ Local/cloud storage abstraction
+- ✅ **Mapping-based storage abstraction (dol ecosystem)**
+- ✅ **Multi-cloud support (S3, local filesystem)**
+- ✅ **JWT authentication & API keys**
+- ✅ **Password hashing with bcrypt**
+- ✅ **Rate limiting & security hardening**
+- ✅ **PostgreSQL production database support**
 - ✅ Comprehensive testing (11/12 passing)
 
 ### Frontend (React + TypeScript)
@@ -81,15 +89,23 @@ npm run dev
 
 ## Documentation
 
+### Implementation Phases
 - [Implementation Plan](IMPLEMENTATION_PLAN.md) - Complete project roadmap
 - [Phase 1 Summary](PHASE1_COMPLETE.md) - Backend foundation
 - [Phase 2 Summary](PHASE2_COMPLETE.md) - Async execution
 - [Phase 3 Summary](PHASE3_COMPLETE.md) - Frontend implementation
 - [Phase 4 Summary](PHASE4_COMPLETE.md) - Advanced UI features
 - [Phase 5 Summary](PHASE5_COMPLETE.md) - E2E testing
+- [Phase 6 Summary](PHASE6_COMPLETE.md) - Cloud preparation & security
+
+### Component Documentation
 - [Backend README](backend/README.md) - Backend details
 - [Frontend README](frontend/README.md) - Frontend details
 - [E2E Testing README](tests/e2e/README.md) - Test documentation
+
+### Deployment & Production
+- [Cloud Deployment Guide](CLOUD_DEPLOYMENT.md) - AWS, GCP, Azure deployment
+- [Security Best Practices](PHASE6_COMPLETE.md#security-enhancements) - Authentication, authorization, hardening
 
 ## Testing
 
@@ -118,6 +134,40 @@ Test Results: 24 tests across 4 user scenarios
 **Local-first, cloud-ready design**:
 - **Local**: SQLite + filesystem + single container
 - **Cloud**: PostgreSQL + S3 + horizontal scaling
+
+## Cloud Deployment
+
+The application is production-ready for deployment on major cloud platforms:
+
+**Supported Platforms**:
+- ✅ **AWS**: ECS Fargate, RDS PostgreSQL, S3, ElastiCache Redis
+- ✅ **GCP**: Cloud Run, Cloud SQL, Cloud Storage, Memorystore
+- ✅ **Azure**: Container Instances, Azure Database, Blob Storage
+
+**Key Features**:
+- Environment-based configuration
+- Multi-cloud storage abstraction (S3, GCS, Azure Blob)
+- PostgreSQL with connection pooling
+- Docker containerization
+- Horizontal scaling support
+- Secure authentication (JWT + API keys)
+- Rate limiting and security hardening
+
+**Quick Cloud Deploy**:
+```bash
+# See CLOUD_DEPLOYMENT.md for complete guides
+
+# Example: AWS ECS
+docker build -t aw-app-backend ./backend
+docker push <ECR_REPO>/aw-app-backend:latest
+aws ecs update-service --cluster aw-app --service backend --force-new-deployment
+
+# Example: GCP Cloud Run
+gcloud builds submit --tag gcr.io/<PROJECT>/aw-app-backend ./backend
+gcloud run deploy aw-app-backend --image gcr.io/<PROJECT>/aw-app-backend
+```
+
+See [Cloud Deployment Guide](CLOUD_DEPLOYMENT.md) for detailed instructions.
 
 ## License
 
