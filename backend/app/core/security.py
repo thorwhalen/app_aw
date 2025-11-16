@@ -18,12 +18,6 @@ settings = get_settings()
 # Password hashing configuration
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# JWT configuration
-SECRET_KEY = "your-secret-key-change-this-in-production"  # TODO: Move to env var
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-REFRESH_TOKEN_EXPIRE_DAYS = 7
-
 
 class Token(BaseModel):
     """JWT token response model."""
@@ -107,7 +101,7 @@ class JWTManager:
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            expire = datetime.utcnow() + timedelta(minutes=settings.access_token_expire_minutes)
 
         to_encode.update({
             "exp": expire,
@@ -115,7 +109,7 @@ class JWTManager:
             "type": "access"
         })
 
-        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        encoded_jwt = jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
         return encoded_jwt
 
     @staticmethod
@@ -137,7 +131,7 @@ class JWTManager:
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+            expire = datetime.utcnow() + timedelta(days=settings.refresh_token_expire_days)
 
         to_encode.update({
             "exp": expire,
@@ -145,7 +139,7 @@ class JWTManager:
             "type": "refresh"
         })
 
-        encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+        encoded_jwt = jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
         return encoded_jwt
 
     @staticmethod
@@ -162,7 +156,7 @@ class JWTManager:
             JWTError: If token is invalid or expired
         """
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
             return payload
         except JWTError as e:
             raise ValueError(f"Invalid token: {str(e)}")

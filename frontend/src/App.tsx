@@ -4,7 +4,10 @@
 
 import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { FileUp, Workflow as WorkflowIcon, LayoutDashboard, Activity } from 'lucide-react'
+import { FileUp, Workflow as WorkflowIcon, LayoutDashboard, Activity, LogOut, User } from 'lucide-react'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { Login } from './components/Login'
+import { Register } from './components/Register'
 import { DataUpload } from './components/DataUpload'
 import { DataList } from './components/DataList'
 import { WorkflowBuilder } from './components/WorkflowBuilder'
@@ -20,9 +23,10 @@ const queryClient = new QueryClient({
   },
 })
 
-type View = 'dashboard' | 'data' | 'workflows' | 'monitor'
+type View = 'dashboard' | 'data' | 'workflows' | 'monitor' | 'login' | 'register'
 
-function App() {
+function MainApp() {
+  const { user, logout, isLoading } = useAuth()
   const [currentView, setCurrentView] = useState<View>('dashboard')
   const [monitoringJobId, setMonitoringJobId] = useState<string | null>(null)
 
@@ -31,8 +35,29 @@ function App() {
     setCurrentView('monitor')
   }
 
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div>Loading...</div>
+      </div>
+    )
+  }
+
+  // Show login/register if not authenticated
+  if (!user) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: 'var(--background)' }}>
+        {currentView === 'register' ? (
+          <Register onSwitchToLogin={() => setCurrentView('login')} />
+        ) : (
+          <Login onSwitchToRegister={() => setCurrentView('register')} />
+        )}
+      </div>
+    )
+  }
+
   return (
-    <QueryClientProvider client={queryClient}>
       <div className="app-layout">
         {/* Sidebar */}
         <div className="sidebar">
@@ -140,6 +165,49 @@ function App() {
               </button>
             )}
           </nav>
+
+          {/* User menu */}
+          <div style={{ marginTop: 'auto', paddingTop: '2rem', borderTop: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+              <User size={18} style={{ color: 'var(--text-secondary)' }} />
+              <div style={{ flex: 1, overflow: 'hidden' }}>
+                <div style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--text)' }}>
+                  {user.full_name || user.username}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {user.email}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={logout}
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid var(--border)',
+                borderRadius: '4px',
+                background: 'transparent',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontSize: '0.875rem',
+                transition: 'all 0.2s',
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--error-bg)'
+                e.currentTarget.style.color = 'var(--error)'
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent'
+                e.currentTarget.style.color = 'var(--text-secondary)'
+              }}
+            >
+              <LogOut size={16} />
+              Logout
+            </button>
+          </div>
         </div>
 
         {/* Main content */}
@@ -196,6 +264,15 @@ function App() {
           </div>
         </div>
       </div>
+  )
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <MainApp />
+      </AuthProvider>
     </QueryClientProvider>
   )
 }

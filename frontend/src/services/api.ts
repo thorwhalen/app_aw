@@ -15,6 +15,24 @@ import type {
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1'
 
+interface User {
+  id: string
+  username: string
+  email: string
+  full_name: string | null
+  is_active: boolean
+  is_superuser: boolean
+  scopes: string[]
+  created_at: string
+}
+
+interface TokenResponse {
+  access_token: string
+  token_type: string
+  expires_in: number
+  refresh_token: string | null
+}
+
 class ApiClient {
   private client: AxiosInstance
 
@@ -25,11 +43,67 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     })
+
+    // Load token from localStorage on initialization
+    const token = localStorage.getItem('aw_access_token')
+    if (token) {
+      this.setAuthToken(token)
+    }
+  }
+
+  // Auth token management
+  setAuthToken(token: string | null) {
+    if (token) {
+      this.client.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    } else {
+      delete this.client.defaults.headers.common['Authorization']
+    }
+  }
+
+  // Authentication
+  async login(username: string, password: string): Promise<TokenResponse> {
+    const { data } = await this.client.post<TokenResponse>('/auth/login', {
+      username,
+      password,
+    })
+    return data
+  }
+
+  async register(
+    username: string,
+    email: string,
+    password: string,
+    full_name?: string
+  ): Promise<User> {
+    const { data } = await this.client.post<User>('/auth/register', {
+      username,
+      email,
+      password,
+      full_name,
+    })
+    return data
+  }
+
+  async refreshToken(refreshToken: string): Promise<TokenResponse> {
+    const { data } = await this.client.post<TokenResponse>('/auth/refresh', {
+      refresh_token: refreshToken,
+    })
+    return data
+  }
+
+  async getCurrentUser(): Promise<User> {
+    const { data } = await this.client.get<User>('/auth/me')
+    return data
+  }
+
+  async devLogin(): Promise<TokenResponse> {
+    const { data } = await this.client.post<TokenResponse>('/auth/dev-login')
+    return data
   }
 
   // Health
   async getHealth(): Promise<HealthResponse> {
-    const { data } = await this.client.get<HealthResponse>('/health')
+    const { data} = await this.client.get<HealthResponse>('/health')
     return data
   }
 

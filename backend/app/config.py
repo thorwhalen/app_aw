@@ -68,6 +68,19 @@ class Settings(BaseSettings):
         default=7, description="Days to keep completed jobs"
     )
 
+    # Authentication
+    jwt_secret_key: str = Field(
+        default="dev-secret-key-change-in-production-please",
+        description="JWT secret key for token signing"
+    )
+    jwt_algorithm: str = Field(default="HS256", description="JWT algorithm")
+    access_token_expire_minutes: int = Field(
+        default=30, description="Access token expiration in minutes"
+    )
+    refresh_token_expire_days: int = Field(
+        default=7, description="Refresh token expiration in days"
+    )
+
     @property
     def celery_broker(self) -> str:
         """Get Celery broker URL, defaulting to Redis URL."""
