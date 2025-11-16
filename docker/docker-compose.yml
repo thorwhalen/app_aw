@@ -28,21 +28,33 @@ services:
     volumes:
       - redis_data:/data
 
-  # Celery worker (for Phase 2)
-  # celery_worker:
-  #   build:
-  #     context: ../backend
-  #     dockerfile: Dockerfile
-  #   environment:
-  #     - DATABASE_URL=sqlite+aiosqlite:///./aw_app.db
-  #     - REDIS_URL=redis://redis:6379/0
-  #   volumes:
-  #     - ../backend:/app
-  #     - backend_data:/app/data
-  #   depends_on:
-  #     - redis
-  #     - backend
-  #   command: celery -A app.core.task_queue worker --loglevel=info
+  # Celery worker
+  celery_worker:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///./aw_app.db
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ../backend:/app
+      - backend_data:/app/data
+    depends_on:
+      - redis
+      - backend
+    command: celery -A app.core.task_queue worker --loglevel=info
+
+  # Frontend
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_BASE_URL=/api/v1
 
 volumes:
   backend_data:
