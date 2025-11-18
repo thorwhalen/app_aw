@@ -10,6 +10,7 @@ import type { Workflow } from '../types'
 import { ListSkeleton } from './Loading'
 import { EmptyState } from './EmptyState'
 import { useToast } from './Toast'
+import { WorkflowExport, BulkExport } from './WorkflowImportExport'
 
 interface WorkflowListProps {
   onExecute?: (jobId: string) => void
@@ -98,9 +99,12 @@ export function WorkflowList({ onExecute }: WorkflowListProps) {
 
   return (
     <div className="card">
-      <h3 style={{ marginBottom: '1rem', fontSize: '1.125rem', fontWeight: '600' }}>
-        Workflows ({workflows.length})
-      </h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h3 style={{ fontSize: '1.125rem', fontWeight: '600' }}>
+          Workflows ({workflows.length})
+        </h3>
+        <BulkExport workflows={workflows} />
+      </div>
 
       {dataArtifacts && dataArtifacts.length > 0 && (
         <div style={{ marginBottom: '1rem' }}>
@@ -158,6 +162,8 @@ export function WorkflowList({ onExecute }: WorkflowListProps) {
                 <Play size={14} />
                 {executeMutation.isPending ? 'Executing...' : 'Execute'}
               </button>
+
+              <WorkflowExport workflow={workflow} />
 
               <button
                 className="btn btn-danger"

@@ -4,7 +4,7 @@
 
 import { useState } from 'react'
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
-import { FileUp, Workflow as WorkflowIcon, LayoutDashboard, Activity, LogOut, User } from 'lucide-react'
+import { FileUp, Workflow as WorkflowIcon, LayoutDashboard, Activity, LogOut, User, History } from 'lucide-react'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ToastProvider } from './components/Toast'
 import { Login } from './components/Login'
@@ -16,6 +16,9 @@ import { WorkflowList } from './components/WorkflowList'
 import { WorkflowTemplates } from './components/WorkflowTemplates'
 import { ExecutionMonitorWithResults } from './components/ExecutionMonitor'
 import { Onboarding } from './components/Onboarding'
+import { Dashboard } from './components/Dashboard'
+import { JobHistory } from './components/JobHistory'
+import { WorkflowImport } from './components/WorkflowImportExport'
 import api from './services/api'
 
 const queryClient = new QueryClient({
@@ -27,7 +30,7 @@ const queryClient = new QueryClient({
   },
 })
 
-type View = 'dashboard' | 'data' | 'workflows' | 'monitor' | 'login' | 'register'
+type View = 'dashboard' | 'data' | 'workflows' | 'monitor' | 'history' | 'login' | 'register'
 
 function MainApp() {
   const { user, logout, isLoading } = useAuth()
@@ -165,6 +168,29 @@ function MainApp() {
               Workflows
             </button>
 
+            <button
+              onClick={() => setCurrentView('history')}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                marginBottom: '0.5rem',
+                border: 'none',
+                borderRadius: '6px',
+                background: currentView === 'history' ? 'var(--primary)' : 'transparent',
+                color: currentView === 'history' ? 'white' : 'var(--text)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                fontSize: '0.9375rem',
+                fontWeight: currentView === 'history' ? '600' : '500',
+                transition: 'all 0.2s',
+              }}
+            >
+              <History size={18} />
+              Job History
+            </button>
+
             {monitoringJobId && (
               <button
                 onClick={() => setCurrentView('monitor')}
@@ -242,20 +268,14 @@ function MainApp() {
               {currentView === 'dashboard' && 'Dashboard'}
               {currentView === 'data' && 'Data Manager'}
               {currentView === 'workflows' && 'Workflows'}
+              {currentView === 'history' && 'Job History'}
               {currentView === 'monitor' && 'Job Monitor'}
             </h2>
           </div>
 
           <div className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
             {currentView === 'dashboard' && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                <div>
-                  <DataUpload />
-                </div>
-                <div>
-                  <WorkflowBuilder />
-                </div>
-              </div>
+              <Dashboard />
             )}
 
             {currentView === 'data' && (
@@ -269,12 +289,20 @@ function MainApp() {
 
             {currentView === 'workflows' && (
               <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+                <WorkflowImport />
                 <WorkflowTemplates />
                 <div style={{ marginBottom: '1.5rem' }}>
                   <WorkflowBuilder />
                 </div>
                 <WorkflowList onExecute={handleExecute} />
               </div>
+            )}
+
+            {currentView === 'history' && (
+              <JobHistory onViewJob={(jobId) => {
+                setMonitoringJobId(jobId)
+                setCurrentView('monitor')
+              }} />
             )}
 
             {currentView === 'monitor' && monitoringJobId && (
